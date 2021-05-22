@@ -12,12 +12,7 @@ drive.mount('/content/drive')
 
 import os
 import glob
-import re 
-import pandas as pd
-from PIL import Image
 from torch.utils.data import Dataset
-import pandas as pd
-import os
 import torch
 import torchvision.transforms as transforms
 from torchvision import models
@@ -25,9 +20,7 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-from sklearn.metrics import classification_report
-from sklearn import preprocessing
-import datetime
+
 
 """# data load
 

@@ -12,9 +12,6 @@ drive.mount('/content/drive')
 
 import os
 import glob
-import re 
-import pandas as pd
-from PIL import Image
 from torch.utils.data import Dataset
 import pandas as pd
 import os
@@ -25,12 +22,10 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-from sklearn.metrics import classification_report
-from sklearn import preprocessing
-import datetime
-import sklearn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
+import random
+import itertools
 
 """# Early fusion
 videoを16imagesに変換したデータを16channelのnpyにし、そのnpyをCNNに入力するモデル。
@@ -68,7 +63,6 @@ for j,cat in enumerate(listofcats):
     test_data_list.append(d)
   target_test.append([j]*len(listofdatas))
 
-import itertools
 target_train2 = list(itertools.chain.from_iterable(target_train))
 target_test2 = list(itertools.chain.from_iterable(target_test))
 

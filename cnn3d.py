@@ -12,12 +12,7 @@ drive.mount('/content/drive')
 
 import os
 import glob
-import re 
-import pandas as pd
-from PIL import Image
 from torch.utils.data import Dataset
-import pandas as pd
-import os
 import torch
 import torchvision.transforms as transforms
 from torchvision import models
@@ -25,17 +20,11 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-from sklearn.metrics import classification_report
-from sklearn import preprocessing
-import datetime
-import sklearn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-import os
 import shutil
 import random
 import cv2
-import glob
 from tqdm import tqdm
 import itertools
 import math
@@ -61,8 +50,7 @@ for i,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'train' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    train_data_list.append(d[:8])
+    train_data_list.append(random.sample(d,8))
   target_train.append([i]*len(listofdatas))
 
 #test data
@@ -74,10 +62,9 @@ for j,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'test' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    test_data_list.append(d[:8])
+    test_data_list.append(random.sample(d,8))
   target_test.append([j]*len(listofdatas))
-import itertools
+
 target_train2 = list(itertools.chain.from_iterable(target_train))
 target_test2 = list(itertools.chain.from_iterable(target_test))
 

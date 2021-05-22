@@ -12,12 +12,7 @@ drive.mount('/content/drive')
 
 import os
 import glob
-import re 
-import pandas as pd
-from PIL import Image
 from torch.utils.data import Dataset
-import pandas as pd
-import os
 import torch
 import torchvision.transforms as transforms
 from torchvision import models
@@ -25,17 +20,11 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-from sklearn.metrics import classification_report
-from sklearn import preprocessing
-import datetime
-import sklearn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-import os
 import shutil
 import random
 import cv2
-import glob
 from tqdm import tqdm
 import itertools
 
@@ -59,8 +48,7 @@ for i,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'train' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    train_data_list.append(d[:4])
+    train_data_list.append(random.sample(d,4))
   target_train.append([i]*len(listofdatas))
 
 #test data
@@ -73,11 +61,9 @@ for j,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'validation' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    test_data_list.append(d[:4])
+    test_data_list.append(random.sample(d,4))
   target_test.append([j]*len(listofdatas))
 
-import itertools
 target_train2 = list(itertools.chain.from_iterable(target_train))
 target_test2 = list(itertools.chain.from_iterable(target_test))
 
@@ -96,9 +82,7 @@ target_test2 = list(itertools.chain.from_iterable(target_test))
 # (T,W,H,C) -> (T,C,W,H)
 train_data_list2 = []
 for ts in train_data_list:
-  #print(ts.shape)
   ts = torch.stack([TF.to_tensor(np.array(t)) for t in ts])
-  #print(ts.shape)
   train_data_list2.append(ts)
 X_train = torch.stack(train_data_list2)
 X_train = X_train
@@ -108,9 +92,7 @@ Y_train = Y_train
 print("Y_train_size=",Y_train.shape)
 test_data_list2 = []
 for ts in test_data_list:
-  #print(ts.shape)
   ts = torch.stack([TF.to_tensor(np.array(t)) for t in ts])
-  #print(ts.shape)
   test_data_list2.append(ts)
 X_test = torch.stack(test_data_list2)
 print("X_test_size=",X_test.shape)

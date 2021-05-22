@@ -12,12 +12,7 @@ drive.mount('/content/drive')
 
 import os
 import glob
-import re 
-import pandas as pd
-from PIL import Image
 from torch.utils.data import Dataset
-import pandas as pd
-import os
 import torch
 import torchvision.transforms as transforms
 from torchvision import models
@@ -25,17 +20,10 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-from sklearn.metrics import classification_report
-from sklearn import preprocessing
-import datetime
-import sklearn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-import os
-import shutil
 import random
 import cv2
-import glob
 from tqdm import tqdm
 import itertools
 
@@ -59,8 +47,7 @@ for i,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'train' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    train_data_list.append(d[:4])
+    train_data_list.append(random.sample(d,4))
   target_train.append([i]*len(listofdatas))
 
 #test data
@@ -73,13 +60,11 @@ for j,cat in enumerate(listofcats):
   for data in listofdatas:
     path2data = os.path.join(original_dir + '/' + 'test' + '/' + str(cat) + '/' + str(data))
     d = np.load(path2data)
-    #print(d.shape)
-    test_data_list.append(d[:4])
+    test_data_list.append(random.sample(d,4))
   target_test.append([j]*len(listofdatas))
 
-import itertools
-target_train = list(itertools.chain.from_iterable(target_train))
-target_test = list(itertools.chain.from_iterable(target_test))
+target_train2 = list(itertools.chain.from_iterable(target_train))
+target_test2 = list(itertools.chain.from_iterable(target_test))
 
 """# データ数
 
@@ -89,36 +74,25 @@ target_test = list(itertools.chain.from_iterable(target_test))
 |test |  41          |  49    |     44    |    87   |
 """
 
-import itertools
-print(len(target_train))
-target_train = list(itertools.chain.from_iterable(target_train))
-print(len(target_train))
-print(len(target_test))
-target_test = list(itertools.chain.from_iterable(target_test))
-print(len(target_test))
 
 """#tesorに変換"""
 
 # (T,W,H,C) -> (T,C,W,H)
 train_data_list2 = []
 for ts in train_data_list:
-  #print(ts.shape)
   ts = torch.stack([TF.to_tensor(np.array(t)) for t in ts])
-  #print(ts.shape)
   train_data_list2.append(ts)
 X_train = torch.stack(train_data_list2)
 print("X_train_size=",X_train.shape)
-Y_train = torch.tensor([torch.from_numpy(np.array(i)) for i in target_train])
+Y_train = torch.tensor([torch.from_numpy(np.array(i)) for i in target_train2])
 print("Y_train_size=",Y_train.shape)
 test_data_list2 = []
 for ts in test_data_list:
-  #print(ts.shape)
   ts = torch.stack([TF.to_tensor(np.array(t)) for t in ts])
-  #print(ts.shape)
   test_data_list2.append(ts)
 X_test = torch.stack(test_data_list2)
 print("X_test_size=",X_test.shape)
-Y_test = torch.tensor([torch.from_numpy(np.array(i)) for i in target_test])
+Y_test = torch.tensor([torch.from_numpy(np.array(i)) for i in target_test2])
 print("Y_test_size=",Y_test.shape)
 
 """# torchにload
@@ -170,52 +144,29 @@ class late_fusion(nn.Module):
   def forward(self,x):
     t0 = self.timestep0(x[:,0,:,:])
     t0 = t0.reshape(t0.size(0),-1)
-    #print("t0",t0.shape)
     t1 = self.timestep1(x[:,1,:,:])
     t1 = t1.reshape(t1.size(0),-1)
-    #print("t1",t1.shape)
     t2 = self.timestep2(x[:,2,:,:])
     t2 = t2.reshape(t2.size(0),-1)
-    #print("t2",t2.shape)
     t3 = self.timestep3(x[:,3,:,:])
     t3 = t3.reshape(t3.size(0),-1)
-    #print("t3",t3.shape)
-    """t4 = self.timestep4(x[:,4,:,:])
-    t4 = t4.reshape(t4.size(0),-1)
-    #print("t4",t4.shape)
-    t5 = self.timestep5(x[:,5,:,:])
-    t5 = t5.reshape(t5.size(0),-1)
-    #print("t5",t5.shape)
-    t6 = self.timestep6(x[:,6,:,:])
-    t6 = t6.reshape(t6.size(0),-1)
-    #print("t6",t6.shape)
-    t7 = self.timestep7(x[:,7,:,:])
-    t7 = t7.reshape(t7.size(0),-1)"""
-    #print("t7",t7.shape)
     
     x = torch.stack([t0,t1,t2,t3])
-    #print("x",x.shape)
     x = x.permute(1,0,2)
-    #print("x",x.shape)
     flatten = nn.Flatten()
     x = flatten(x)
-    #print("x",x.shape)
     
     
     x = self.fc1(x)
     x = self.relu(x)
     x = self.dropout1(x)
-    #print(x)
     x = self.fc2(x)
     x = self.relu(x)
     x = self.dropout2(x)
-    #print(x)
     x = self.fc3(x)
     x = self.relu(x)
     x = self.dropout3(x)
-    #print(x)
     x = self.fc4(x)
-    #print(x)
 
 
     return x
@@ -235,10 +186,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 class EarlyStopping:
-    """earlystoppingクラス"""
 
     def __init__(self, patience=5, verbose=False, path='checkpoint_model.pth'):
-        """引数：最小値の非更新数カウンタ、表示設定、モデル格納path"""
 
         self.patience = patience    #設定ストップカウンタ
         self.verbose = verbose      #表示の有無
@@ -249,10 +198,7 @@ class EarlyStopping:
         self.path = path             #ベストモデル格納path
 
     def __call__(self, val_loss, model):
-        """
-        特殊(call)メソッド
-        実際に学習ループ内で最小lossを更新したか否かを計算させる部分
-        """
+      
         score = -val_loss
 
         if self.best_score is None:  #1Epoch目の処理
@@ -270,7 +216,6 @@ class EarlyStopping:
             self.counter = 0  #ストップカウンタリセット
 
     def checkpoint(self, val_loss, model):
-        '''ベストスコア更新時に実行されるチェックポイント関数'''
         if self.verbose:  #表示を有効にした場合は、前回のベストスコアからどれだけ更新したか？を表示
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
         torch.save(model.state_dict(), self.path)  #ベストモデルを指定したpathに保存
